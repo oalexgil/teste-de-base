@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tom de base — leitura e guia de aplicação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0f10;
+    --panel:#131719;
+    --line:#2a3236;
+    --ink:#e9eef0;
+    --ink-dim:#8b979c;
+    --neutral:#777777;      /* cinza neutro: fundo de julgamento de cor */
+    --accent:#00e0ff;       /* cyan eletrico */
+    --accent-dim:#0a7f92;
+    --warn:#e0a92b;
+    --ok:#3ecf8e;
+    --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"DM Sans",system-ui,sans-serif;font-size:14px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 60px}
+  header{margin-bottom:22px}
+  h1{margin:0 0 3px;font-size:22px;font-weight:700;letter-spacing:-0.02em}
+  header p{margin:0;color:var(--ink-dim);font-size:13px;max-width:62ch}
+
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+
+  /* ---- vídeo com entorno cinza neutro ---- */
+  .viewer{background:var(--neutral);padding:16px;border-radius:4px}
+  .viewer canvas{width:100%;display:block;border-radius:2px}
+  .viewer .note{margin:10px 2px 0;font-size:11.5px;color:#2a2a2a;line-height:1.4}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--ink-dim)}
+
+  /* ---- comparação de cor: aresta dura, sem divisória ---- */
+  .compare{display:flex;height:130px;border-radius:3px;overflow:hidden;margin-bottom:10px}
+  .compare div{flex:1}
+  .compare-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim)}
+  .verdict{margin:12px 0 0;font-size:15px;font-weight:600}
+  .verdict .de{font-family:var(--mono);color:var(--accent);font-weight:400;font-size:12px}
+
+  .readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:3px;overflow:hidden}
+  .readout div{background:var(--panel);padding:9px 10px}
+  .readout dt{margin:0 0 2px;font-size:11px;color:var(--ink-dim)}
+  .readout dd{margin:0;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)}
+
+  .classline{margin:12px 0 0;font-size:13.5px}
+  .classline b{font-weight:600}
+
+  /* ---- parede de tons ---- */
+  .wall{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+  .wall button{
+    aspect-ratio:1/1.5;border:2px solid transparent;border-radius:2px;padding:0;cursor:pointer;
+    font:inherit;font-size:0;
+  }
+  .wall button[aria-pressed=true]{border-color:var(--ink);box-shadow:0 0 0 2px var(--bg) inset}
+  .wall button:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+  .wall-rows{display:grid;gap:3px}
+  .wall-label{font-size:11.5px;color:var(--ink-dim);margin:0 0 4px}
+  .picked{margin:12px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim)}
+
+  /* ---- aplicação ---- */
+  .region{margin:0 0 9px}
+  .region-head{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+  .region-head .pct{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim)}
+  .bar{height:7px;background:#1c2225;border-radius:4px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .18s linear}
+  .bar i.done{background:var(--ok)}
+
+  .coach{
+    margin:16px 0 0;padding:13px 14px;border-radius:3px;background:#1c2225;
+    border-left:3px solid var(--warn);font-size:15px;line-height:1.4;min-height:52px;
+  }
+  .coach.done{border-left-color:var(--ok)}
+
+  button.act{
+    display:block;width:100%;padding:10px 12px;margin-top:9px;background:#1c2225;color:var(--ink);
+    border:1px solid var(--line);border-radius:3px;font:inherit;font-size:13.5px;cursor:pointer;
+  }
+  button.act:hover{border-color:var(--accent-dim)}
+  button.act:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  button.act.primary{background:var(--accent);color:#08191d;border-color:var(--accent);font-weight:700}
+  button.act[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:#07130d}
+  .hint{margin:9px 0 0;font-size:12px;color:var(--ink-dim)}
+
+  .status{padding:14px;border:1px solid var(--line);border-radius:3px;color:var(--ink-dim);font-size:13.5px}
+  .hidden{display:none!important}
+  @media (max-width:900px){ .cols{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tom de base</h1>
+    <p>Mede a cor da pele pela câmera, sugere o tom de base mais próximo e acompanha a aplicação em tempo real.</p>
+  </header>
+
+  <div class="status" id="status">Permita o acesso à câmera para começar.</div>
+
+  <div class="cols hidden" id="app">
+    <div>
+      <div class="viewer">
+        <canvas id="view"></canvas>
+        <p class="note">O cinza ao redor é neutro de propósito: qualquer cor aqui contaminaria sua percepção do tom da pele.</p>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Câmera</h2>
+        <button class="act" id="btnMirror" aria-pressed="true">A câmera já entrega espelhado</button>
+        <p class="hint" id="mirrorHint">Segure algo escrito na frente da câmera. Esta é uma visão de espelho, então o texto deve aparecer invertido. Se estiver legível, alterne o botão.</p>
+      </div>
+
+      <div class="card">
+        <h2>Calibração</h2>
+        <button class="act" id="btnWhite">Calibrar com papel branco</button>
+        <button class="act" id="btnResetWhite">Descartar calibração</button>
+        <p class="hint" id="wbHint">Sem calibração as medidas são relativas — a câmera aplica balanço de branco automático e desloca a cor. Segure uma folha branca cobrindo o centro do quadro e calibre.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Pele medida × base escolhida</h2>
+        <div class="compare"><div id="swSkin"></div><div id="swShade"></div></div>
+        <div class="compare-legend"><span>pele</span><span>base</span></div>
+        <p class="verdict" id="verdict">Aguardando rosto <span class="de"></span></p>
+
+        <dl class="readout" style="margin-top:14px">
+          <div><dt>L*</dt><dd id="rL">—</dd></div>
+          <div><dt>a*</dt><dd id="rA">—</dd></div>
+          <div><dt>b*</dt><dd id="rB">—</dd></div>
+        </dl>
+        <p class="classline" id="classline">—</p>
+      </div>
+
+      <div class="card">
+        <h2>Escala de tons</h2>
+        <div class="wall-rows">
+          <div><p class="wall-label">quente</p><div class="wall" id="wallQ"></div></div>
+          <div><p class="wall-label">neutro</p><div class="wall" id="wallN"></div></div>
+          <div><p class="wall-label">frio</p><div class="wall" id="wallF"></div></div>
+        </div>
+        <p class="picked" id="picked">—</p>
+        <button class="act" id="btnAuto">Voltar para a sugestão automática</button>
+        <p class="hint">Escala genérica de referência. Num produto real, substitua por medições L*a*b* do catálogo da marca.</p>
+      </div>
+
+      <div class="card">
+        <h2>Aplicação</h2>
+        <div id="bars"></div>
+        <p class="coach" id="coach">Marque a pele nua para começar o acompanhamento.</p>
+        <button class="act primary" id="btnBase">Marcar pele nua</button>
+        <button class="act" id="btnVoice" aria-pressed="false">Instruções por voz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<video id="video" playsinline muted autoplay style="display:none"></video>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+/* ================= cor ================= */
+function srgbToLinear(c){ c/=255; return c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+function rgbToLab(r,g,b){
+  const R=srgbToLinear(r), G=srgbToLinear(g), B=srgbToLinear(b);
+  let X=(R*0.4124564+G*0.3575761+B*0.1804375)*100;
+  let Y=(R*0.2126729+G*0.7151522+B*0.0721750)*100;
+  let Z=(R*0.0193339+G*0.1191920+B*0.9503041)*100;
+  const f=t=> t>0.008856 ? Math.cbrt(t) : (7.787*t)+16/116;
+  const fx=f(X/95.047), fy=f(Y/100), fz=f(Z/108.883);
+  return {L:116*fy-16, a:500*(fx-fy), b:200*(fy-fz)};
+}
+function labToRgb(L,a,b){
+  const fy=(L+16)/116, fx=fy+a/500, fz=fy-b/200;
+  const inv=t=> t*t*t>0.008856 ? t*t*t : (t-16/116)/7.787;
+  const X=inv(fx)*95.047/100, Y=inv(fy), Z=inv(fz)*108.883/100;
+  let R= X*3.2404542 + Y*-1.5371385 + Z*-0.4985314;
+  let G= X*-0.9692660 + Y*1.8760108 + Z*0.0415560;
+  let B= X*0.0556434 + Y*-0.2040259 + Z*1.0572252;
+  const enc=c=>{ c=Math.max(0,Math.min(1,c)); c = c<=0.0031308 ? c*12.92 : 1.055*Math.pow(c,1/2.4)-0.055; return Math.round(c*255); };
+  return `rgb(${enc(R)},${enc(G)},${enc(B)})`;
+}
+/* CIEDE2000 */
+function deltaE(c1,c2){
+  const rad=Math.PI/180, deg=180/Math.PI;
+  const C1=Math.hypot(c1.a,c1.b), C2=Math.hypot(c2.a,c2.b);
+  const Cb=(C1+C2)/2, Cb7=Math.pow(Cb,7);
+  const G=0.5*(1-Math.sqrt(Cb7/(Cb7+Math.pow(25,7))));
+  const a1=(1+G)*c1.a, a2=(1+G)*c2.a;
+  const C1p=Math.hypot(a1,c1.b), C2p=Math.hypot(a2,c2.b);
+  const h=(x,y)=>{ if(x===0&&y===0) return 0; let v=Math.atan2(y,x)*deg; return v<0?v+360:v; };
+  const h1=h(a1,c1.b), h2=h(a2,c2.b);
+  const dLp=c2.L-c1.L, dCp=C2p-C1p;
+  let dhp=0;
+  if(C1p*C2p!==0){ dhp=h2-h1; if(dhp>180) dhp-=360; else if(dhp<-180) dhp+=360; }
+  const dHp=2*Math.sqrt(C1p*C2p)*Math.sin(dhp/2*rad);
+  const Lbp=(c1.L+c2.L)/2, Cbp=(C1p+C2p)/2;
+  let hbp;
+  if(C1p*C2p===0) hbp=h1+h2;
+  else if(Math.abs(h1-h2)<=180) hbp=(h1+h2)/2;
+  else hbp = (h1+h2<360) ? (h1+h2+360)/2 : (h1+h2-360)/2;
+  const T=1-0.17*Math.cos((hbp-30)*rad)+0.24*Math.cos(2*hbp*rad)
+           +0.32*Math.cos((3*hbp+6)*rad)-0.20*Math.cos((4*hbp-63)*rad);
+  const dTh=30*Math.exp(-Math.pow((hbp-275)/25,2));
+  const Cbp7=Math.pow(Cbp,7);
+  const Rc=2*Math.sqrt(Cbp7/(Cbp7+Math.pow(25,7)));
+  const Sl=1+(0.015*Math.pow(Lbp-50,2))/Math.sqrt(20+Math.pow(Lbp-50,2));
+  const Sc=1+0.045*Cbp, Sh=1+0.015*Cbp*T;
+  const Rt=-Math.sin(2*dTh*rad)*Rc;
+  return Math.sqrt(Math.pow(dLp/Sl,2)+Math.pow(dCp/Sc,2)+Math.pow(dHp/Sh,2)
+    + Rt*(dCp/Sc)*(dHp/Sh));
+}
+/* Individual Typology Angle — classificação usada em dermatologia e cosmética */
+function ita(lab){ return Math.atan2(lab.L-50, lab.b)*180/Math.PI; }
+function itaClass(v){
+  if(v>55) return 'muito clara';
+  if(v>41) return 'clara';
+  if(v>28) return 'intermediária';
+  if(v>10) return 'morena';
+  if(v>-30) return 'castanha';
+  return 'escura';
+}
+function undertone(lab){
+  const h=Math.atan2(lab.b,lab.a)*180/Math.PI;
+  if(h<47.5) return 'frio';
+  if(h<57.5) return 'neutro';
+  return 'quente';
+}
+
+/* ================= catálogo ================= */
+const HUE = {quente:61, neutro:52, frio:43};
+const LEVELS = [74,70,66,62,58,54,50,46,42,38,34,30];
+const SHADES = [];
+for(const [tone,hue] of Object.entries(HUE)){
+  LEVELS.forEach((L,i)=>{
+    const C = Math.max(12, Math.min(24, 13 + (72-L)*0.14));
+    const a = C*Math.cos(hue*Math.PI/180), b = C*Math.sin(hue*Math.PI/180);
+    SHADES.push({
+      id: tone[0].toUpperCase() + String(10+i*5),
+      tone, L, a, b, css: labToRgb(L,a,b)
+    });
+  });
+}
+
+/* ================= regiões ================= */
+const REGIONS = [
+  {key:'testa',    nome:'testa',            idx:[10,151,108,337,9]},
+  {key:'bocheD',   nome:'bochecha direita', idx:[205,50,101]},
+  {key:'bocheE',   nome:'bochecha esquerda',idx:[425,280,330]},
+  {key:'queixo',   nome:'queixo',           idx:[152,175,199]},
+];
+const FACE_KEYS = REGIONS.map(r=>r.key);
+
+/* ================= estado ================= */
+const S = {
+  gains:[1,1,1], wbOn:false, srcMirrored:true,
+  samples:{}, skinLab:null,
+  target:null, autoShade:true,
+  baseline:null, voice:false, lastSpoken:'', lastSpeakAt:0,
+  faceSeen:false
+};
+
+const video=document.getElementById('video');
+const view=document.getElementById('view'), vctx=view.getContext('2d');
+const work=document.createElement('canvas'), wctx=work.getContext('2d',{willReadFrequently:true});
+// Quadro na orientação REAL (não espelhada). Todo o resto deriva daqui:
+// a medição precisa dele para que os índices anatômicos do MediaPipe batam com
+// a bochecha certa, e a exibição o espelha de volta para virar visão de espelho.
+const trueF=document.createElement('canvas'), tctx=trueF.getContext('2d');
+const $=id=>document.getElementById(id);
+let landmarker=null, W=0, H=0, lastT=-1, lastSample=0;
+
+/* ================= amostragem ================= */
+function trimmedMean(data, cx, cy, r, w, h){
+  const px=[];
+  for(let y=Math.max(0,cy-r); y<=Math.min(h-1,cy+r); y++){
+    for(let x=Math.max(0,cx-r); x<=Math.min(w-1,cx+r); x++){
+      const i=(y*w+x)*4;
+      const R=data[i], G=data[i+1], B=data[i+2];
+      px.push([0.2126*R+0.7152*G+0.0722*B, R, G, B]);
+    }
+  }
+  if(px.length<9) return null;
+  px.sort((p,q)=>p[0]-q[0]);
+  const lo=Math.floor(px.length*0.25), hi=Math.ceil(px.length*0.75);
+  let R=0,G=0,B=0,n=0;
+  for(let i=lo;i<hi;i++){ R+=px[i][1]; G+=px[i][2]; B+=px[i][3]; n++; }
+  return [R/n*S.gains[0], G/n*S.gains[1], B/n*S.gains[2]];
+}
+
+function sample(landmarks){
+  const w=work.width, h=work.height;
+  const img=wctx.getImageData(0,0,w,h).data;
+  const faceH = Math.abs(landmarks[152].y - landmarks[10].y) * h;
+  const r = Math.max(3, Math.round(faceH*0.035));
+  const out={};
+  for(const reg of REGIONS){
+    let sx=0, sy=0;
+    for(const i of reg.idx){ sx+=landmarks[i].x; sy+=landmarks[i].y; }
+    const cx=Math.round(sx/reg.idx.length*w), cy=Math.round(sy/reg.idx.length*h);
+    const rgb=trimmedMean(img,cx,cy,r,w,h);
+    if(rgb) out[reg.key]={lab:rgbToLab(...rgb), pt:[cx/w, cy/h]};
+  }
+  // pescoço: extrapolado abaixo do queixo
+  const nx=Math.round(landmarks[152].x*w);
+  const ny=Math.round((landmarks[152].y + Math.abs(landmarks[152].y-landmarks[10].y)*0.30)*h);
+  if(ny<h-r){
+    const rgb=trimmedMean(img,nx,ny,r,w,h);
+    if(rgb) out.pescoco={lab:rgbToLab(...rgb), pt:[nx/w, ny/h]};
+  }
+  return out;
+}
+
+function meanLab(keys){
+  const list=keys.map(k=>S.samples[k]).filter(Boolean);
+  if(!list.length) return null;
+  return {
+    L:list.reduce((s,x)=>s+x.lab.L,0)/list.length,
+    a:list.reduce((s,x)=>s+x.lab.a,0)/list.length,
+    b:list.reduce((s,x)=>s+x.lab.b,0)/list.length
+  };
+}
+
+/* ================= loop ================= */
+async function start(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'user', width:{ideal:1280}, height:{ideal:720}}, audio:false});
+    video.srcObject=stream; await video.play();
+    const st=stream.getVideoTracks()[0]?.getSettings?.()||{};
+    S.srcMirrored = st.facingMode ? st.facingMode==='user' : true;
+    await new Promise(r=>{ if(video.videoWidth) r(); else video.onloadedmetadata=r; });
+    W=video.videoWidth; H=video.videoHeight;
+    view.width=W; view.height=H;
+    work.width=Math.round(480); work.height=Math.round(480*H/W);
+    trueF.width=W; trueF.height=H;
+    $('btnMirror').setAttribute('aria-pressed', S.srcMirrored?'true':'false');
+
+    $('status').textContent='Carregando modelo facial…';
+    const fs=await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+    landmarker=await FaceLandmarker.createFromOptions(fs,{
+      baseOptions:{
+        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        delegate:"GPU"},
+      runningMode:"VIDEO", numFaces:1, outputFaceBlendshapes:false
+    });
+    $('status').classList.add('hidden'); $('app').classList.remove('hidden');
+    requestAnimationFrame(loop);
+  }catch(e){
+    console.warn(e);
+    $('status').innerHTML='<b>Câmera indisponível.</b> Sirva o arquivo por <code>http://localhost</code> ou HTTPS — o navegador bloqueia a câmera em <code>file://</code>.';
+  }
+}
+
+function loop(now){
+  requestAnimationFrame(loop);
+  if(!landmarker || video.currentTime===lastT) return;
+  lastT=video.currentTime;
+
+  // orientação real, resolvida uma vez
+  tctx.setTransform(1,0,0,1,0,0);
+  if(S.srcMirrored){ tctx.translate(W,0); tctx.scale(-1,1); }
+  tctx.drawImage(video,0,0,W,H);
+  tctx.setTransform(1,0,0,1,0,0);
+
+  // exibição em modo espelho: a pessoa se maquia olhando para a tela
+  vctx.save(); vctx.scale(-1,1); vctx.drawImage(trueF,-W,0,W,H); vctx.restore();
+  // cópia reduzida na orientação real, para medir
+  wctx.drawImage(trueF,0,0,work.width,work.height);
+
+  const res=landmarker.detectForVideo(trueF, now);
+  const lm=res.faceLandmarks?.[0];
+  S.faceSeen=!!lm;
+
+  if(lm && now-lastSample>170){
+    lastSample=now;
+    S.samples=sample(lm);
+    S.skinLab=meanLab(FACE_KEYS);
+    update();
+  }
+  if(S.samples) drawMarkers();
+}
+
+function drawMarkers(){
+  vctx.lineWidth=Math.max(2,W/420);
+  for(const k of Object.keys(S.samples)){
+    const p=S.samples[k].pt;
+    const x=(1-p[0])*W, y=p[1]*H;    // espelhado
+    vctx.beginPath(); vctx.arc(x,y,W*0.016,0,Math.PI*2);
+    vctx.strokeStyle='rgba(255,255,255,.85)'; vctx.stroke();
+    vctx.beginPath(); vctx.arc(x,y,W*0.016,0,Math.PI*2);
+    vctx.strokeStyle='rgba(0,0,0,.35)'; vctx.lineWidth=1; vctx.stroke();
+    vctx.lineWidth=Math.max(2,W/420);
+  }
+}
+
+/* ================= interface ================= */
+function buildWall(){
+  for(const [tone,el] of [['quente',$('wallQ')],['neutro',$('wallN')],['frio',$('wallF')]]){
+    for(const s of SHADES.filter(x=>x.tone===tone)){
+      const b=document.createElement('button');
+      b.style.background=s.css; b.title=`${s.id} · ${tone}`;
+      b.setAttribute('aria-label', `${s.id} ${tone}`);
+      b.setAttribute('aria-pressed','false');
+      b.onclick=()=>{ S.target=s; S.autoShade=false; S.baseline=null; update(); };
+      b.dataset.id=s.id;
+      el.appendChild(b);
+    }
+  }
+}
+buildWall();
+
+function buildBars(){
+  const box=$('bars');
+  for(const r of REGIONS){
+    const d=document.createElement('div'); d.className='region';
+    d.innerHTML=`<div class="region-head"><span>${r.nome}</span><span class="pct" id="pct-${r.key}">—</span></div>
+                 <div class="bar"><i id="bar-${r.key}" style="width:0%"></i></div>`;
+    box.appendChild(d);
+  }
+}
+buildBars();
+
+function update(){
+  if(!S.skinLab) return;
+  const skin=S.skinLab;
+
+  // sugestão automática
+  if(S.autoShade){
+    let best=null;
+    for(const s of SHADES){
+      const d=deltaE(skin, s);
+      if(!best || d<best.d) best={s,d};
+    }
+    S.target=best.s;
+  }
+  const t=S.target;
+
+  // swatches, aresta dura entre os dois
+  $('swSkin').style.background=labToRgb(skin.L,skin.a,skin.b);
+  $('swShade').style.background=t.css;
+
+  const dE=deltaE(skin,t);
+  const v=$('verdict');
+  const label = dE<2.5 ? 'Tom compatível' : dE<5 ? 'Próximo, mas visível' : 'Fora do tom';
+  v.innerHTML=`${label} <span class="de">ΔE00 ${dE.toFixed(1)}</span>`;
+  v.style.color = dE<2.5 ? 'var(--ok)' : dE<5 ? 'var(--ink)' : 'var(--warn)';
+
+  $('rL').textContent=skin.L.toFixed(1);
+  $('rA').textContent=skin.a.toFixed(1);
+  $('rB').textContent=skin.b.toFixed(1);
+  const iv=ita(skin);
+  $('classline').innerHTML=`Pele <b>${itaClass(iv)}</b> · ITA ${iv.toFixed(0)}° · subtom <b>${undertone(skin)}</b>`;
+  $('picked').textContent=`${t.id} · ${t.tone} · L* ${t.L.toFixed(0)}  a* ${t.a.toFixed(1)}  b* ${t.b.toFixed(1)}`
+    + (S.autoShade ? '  (sugestão automática)' : '  (escolha manual)');
+
+  document.querySelectorAll('.wall button').forEach(b=>
+    b.setAttribute('aria-pressed', b.dataset.id===t.id ? 'true':'false'));
+
+  coach(t);
+}
+
+function coach(t){
+  const el=$('coach');
+  if(!S.baseline){
+    el.className='coach';
+    el.textContent = S.autoShade
+      ? 'Tom sugerido pela leitura. Marque a pele nua para acompanhar a aplicação.'
+      : 'Tom escolhido manualmente. Marque a pele nua para acompanhar a aplicação.';
+    for(const r of REGIONS){ $('bar-'+r.key).style.width='0%'; $('pct-'+r.key).textContent='—'; }
+    return;
+  }
+
+  const cov={};
+  for(const r of REGIONS){
+    const now=S.samples[r.key]?.lab, base=S.baseline[r.key];
+    if(!now||!base){ cov[r.key]=null; continue; }
+    const d0=Math.max(deltaE(base,t), 1.2);
+    cov[r.key]=Math.max(0, Math.min(1.15, 1 - deltaE(now,t)/d0));
+  }
+  for(const r of REGIONS){
+    const c=cov[r.key];
+    const bar=$('bar-'+r.key);
+    bar.style.width = c==null ? '0%' : Math.min(100,c*100)+'%';
+    bar.className = (c!=null && c>=0.82) ? 'done' : '';
+    $('pct-'+r.key).textContent = c==null ? '—' : Math.round(c*100)+'%';
+  }
+
+  const vals=Object.values(cov).filter(x=>x!=null);
+  if(!vals.length){ el.textContent='Encaixe o rosto no quadro.'; return; }
+  const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const spread=Math.max(...vals)-Math.min(...vals);
+  const worst=REGIONS.filter(r=>cov[r.key]!=null).sort((a,b)=>cov[a.key]-cov[b.key])[0];
+
+  const face=meanLab(FACE_KEYS), neck=S.samples.pescoco?.lab;
+  const neckGap = (face&&neck) ? deltaE(face,neck) : 0;
+
+  let text, done=false;
+  if(mean>0.8 && neckGap>5.5){
+    text=`O rosto está descolando do pescoço. Puxe a base até a mandíbula e esfume no pescoço.`;
+  }else if(spread>0.32){
+    text=`Está desigual — falta ${['bochecha direita','bochecha esquerda'].includes(worst.nome)?'na':'na'} ${worst.nome}. Esfume nessa direção.`;
+  }else if(mean<0.55){
+    text=`Passe mais, principalmente na ${worst.nome}.`;
+  }else if(mean<0.82){
+    text=`Quase lá. Um pouco mais na ${worst.nome} e esfume.`;
+  }else{
+    text=`Cobertura uniforme e alinhada com o pescoço. Pode parar.`; done=true;
+  }
+  el.className = done ? 'coach done' : 'coach';
+  el.textContent = text;
+  speak(text);
+}
+
+function speak(text){
+  if(!S.voice || !window.speechSynthesis) return;
+  const now=performance.now();
+  if(text===S.lastSpoken && now-S.lastSpeakAt<9000) return;
+  if(now-S.lastSpeakAt<3800) return;
+  S.lastSpoken=text; S.lastSpeakAt=now;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='pt-BR'; u.rate=1.03;
+  speechSynthesis.speak(u);
+}
+
+/* ================= ações ================= */
+$('btnBase').onclick=()=>{
+  if(!S.faceSeen) return;
+  S.baseline={};
+  for(const r of REGIONS) if(S.samples[r.key]) S.baseline[r.key]=S.samples[r.key].lab;
+  $('btnBase').textContent='Remarcar pele nua';
+  update();
+};
+$('btnAuto').onclick=()=>{ S.autoShade=true; S.baseline=null; $('btnBase').textContent='Marcar pele nua'; update(); };
+$('btnMirror').onclick=e=>{
+  S.srcMirrored=!S.srcMirrored;
+  e.currentTarget.setAttribute('aria-pressed', S.srcMirrored?'true':'false');
+  S.baseline=null; $('btnBase').textContent='Marcar pele nua';
+  $('mirrorHint').textContent = S.srcMirrored
+    ? 'Tratando a fonte como espelhada. O texto na tela deve aparecer invertido.'
+    : 'Tratando a fonte como orientação real. O texto na tela deve aparecer invertido.';
+};
+$('btnVoice').onclick=e=>{
+  S.voice=!S.voice; e.currentTarget.setAttribute('aria-pressed', S.voice?'true':'false');
+  if(S.voice) speak('Instruções por voz ativadas.');
+  else speechSynthesis?.cancel();
+};
+
+$('btnWhite').onclick=()=>{
+  const w=work.width,h=work.height;
+  const d=wctx.getImageData(Math.round(w*0.35),Math.round(h*0.35),Math.round(w*0.3),Math.round(h*0.3)).data;
+  let R=0,G=0,B=0,n=0;
+  for(let i=0;i<d.length;i+=4){ R+=d[i]; G+=d[i+1]; B+=d[i+2]; n++; }
+  R/=n; G/=n; B/=n;
+  const gray=(R+G+B)/3;
+  if(gray<40){ $('wbHint').textContent='Muito escuro para calibrar. Aproxime a folha branca da luz e tente de novo.'; return; }
+  S.gains=[gray/R, gray/G, gray/B]; S.wbOn=true;
+  $('wbHint').textContent=`Calibrado. Ganhos R ${S.gains[0].toFixed(2)} · G ${S.gains[1].toFixed(2)} · B ${S.gains[2].toFixed(2)}. Recalibre se mudar de ambiente.`;
+  S.baseline=null; $('btnBase').textContent='Marcar pele nua';
+};
+$('btnResetWhite').onclick=()=>{
+  S.gains=[1,1,1]; S.wbOn=false;
+  $('wbHint').textContent='Calibração descartada. As medidas voltaram a ser relativas.';
+};
+
+start();
+</script>
+</body>
+</html>
