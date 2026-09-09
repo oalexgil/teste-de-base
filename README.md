@@ -1,202 +1,204 @@
-# Tom de base
+# Tom de Base
 
-Mede a cor da pele pela câmera, sugere o tom de base compatível e acompanha a aplicação em tempo real, avisando onde falta, onde está desigual e quando o rosto começa a descolar do pescoço.
+**Browser-based computer vision experiment for cosmetic shade matching with CIELAB, ITA° and CIEDE2000.**
 
-A leitura é colorimétrica, não estimada por modelo de linguagem: conversão para CIELAB, classificação por ITA° e comparação por ΔE2000. Roda inteiramente no navegador — nenhum frame do rosto sai do dispositivo.
+Tom de Base measures color from selected facial regions, estimates a skin-color profile, ranks a synthetic foundation catalog and follows color change during application. The current prototype runs in the browser and uses MediaPipe face landmarks to keep sampling regions aligned with the face.
 
-**Demonstração:** `https://SEU-USUARIO.github.io/tom-de-base/`
+> Status: functional research prototype. It is **not** a validated colorimeter, clinical tool or guarantee of the correct cosmetic SKU.
 
-## Arquivos
+The product name is **Tom de Base**; the repository is still named `teste-de-base`.
 
-```
-.
-├── index.html      protótipo completo, arquivo único
-├── README.md
-├── LICENSE         MIT
-├── .gitignore
-└── .nojekyll       impede o Jekyll do GitHub Pages de processar os arquivos
-```
+## What the prototype does
 
-Sem build, sem bundler, sem `npm install`. As dependências vêm de CDN:
+- opens the camera with browser permission;
+- detects a single face with MediaPipe Face Landmarker;
+- samples forehead, both cheeks, chin and an estimated neck region;
+- applies an optional white-reference channel calibration;
+- converts sampled sRGB values to CIELAB;
+- calculates ITA° and a prototype undertone bucket;
+- ranks 36 synthetic shade candidates using CIEDE2000 (ΔE00);
+- lets the user override the automatic candidate;
+- records a bare-skin baseline and estimates application progress by region;
+- gives optional spoken coaching while makeup is being applied.
 
-- [`@mediapipe/tasks-vision`](https://www.npmjs.com/package/@mediapipe/tasks-vision) 0.10.14 — malha facial
-- Modelo `face_landmarker.task` do storage público do Google
+Camera frames are processed in the browser. The app has no project-controlled backend or image-upload endpoint. Runtime libraries/model assets are still downloaded from third-party hosts; see [SECURITY.md](SECURITY.md) for the exact privacy boundary.
 
----
+## Demo
 
-## Subindo no GitHub
+When GitHub Pages is enabled from the repository root, the expected project URL is:
 
-**1. Crie o repositório.** Em github.com, botão **New**. Nome `tom-de-base`, visibilidade pública (o GitHub Pages gratuito exige repositório público). Não marque nenhuma opção de inicialização — nem README, nem .gitignore, nem licença, já estão aqui.
+`https://oalexgil.github.io/teste-de-base/`
 
-**2. Suba os arquivos.** No terminal, dentro desta pasta:
+Camera access requires a secure context (`https://` or `http://localhost`). Opening `index.html` directly with `file://` is not a supported test path.
+
+## Why this project is technically interesting
+
+The difficult part is not drawing a color swatch. Consumer cameras continuously alter exposure and white balance, face landmarks must stay attached to anatomically meaningful regions, and the color comparison needs deterministic math that can be regression-tested.
+
+The prototype therefore separates the problem conceptually into four layers:
+
+1. **vision** — find and track sampling regions;
+2. **capture/calibration** — reduce camera/lighting variation;
+3. **color science** — convert to Lab and compute ΔE00;
+4. **product heuristics** — rank shades and guide application.
+
+The runtime is still implemented in a single `index.html`; [ARCHITECTURE.md](ARCHITECTURE.md) documents the current technical debt and the planned module boundaries.
+
+## Color pipeline
+
+### Sampling
+
+Four facial regions are sampled from MediaPipe landmarks: forehead, right cheek, left cheek and chin. A fifth region is estimated below the chin for a neck comparison.
+
+Within each sample patch, pixels are sorted by luminance and the darkest/lightest quartiles are discarded before averaging. This is a lightweight attempt to reduce contamination from highlights, shadows and hair; it is not a substitute for semantic skin segmentation.
+
+### sRGB → CIELAB
+
+The current implementation converts camera sRGB values to linear RGB, XYZ D65 and CIELAB.
+
+### CIEDE2000
+
+Shade candidates are ranked by ΔE00. The implementation is now protected by automated regression tests using published CIEDE2000 reference pairs from Sharma, Wu and Dalal.
+
+### ITA°
+
+The prototype calculates Individual Typology Angle from Lab values and displays the current six-band classification used by the application.
+
+### Undertone
+
+The current `frio / neutro / quente` classification is a **prototype heuristic based on hue angle in the a*b* plane**. It is not presented as an industry standard and needs empirical validation before product use.
+
+## Synthetic shade catalog
+
+The built-in 36-shade wall is generated mathematically from lightness and hue parameters. It does **not** represent measured products from a cosmetic brand.
+
+That means the prototype can demonstrate ranking behavior, interface flow and application tracking, but cannot honestly claim SKU-level recommendation accuracy.
+
+For a real catalog, physical product samples should be measured under controlled conditions with a colorimeter or spectrophotometer and stored with measurement metadata.
+
+## White-reference calibration
+
+The calibration control estimates per-channel gains from a white object in the central frame region. It helps investigate whether simple normalization reduces camera color drift.
+
+It does not solve every capture problem. Automatic exposure, tone mapping, device-specific camera processing, mixed illumination and reflected environmental color can still move the result substantially.
+
+The empirical validation plan is documented in [VALIDATION.md](VALIDATION.md).
+
+## Running locally
+
+No build step is required for the deployed application.
 
 ```bash
-git init
-git add .
-git commit -m "Leitura de tom de pele e guia de aplicação de base"
-git branch -M main
-git remote add origin https://github.com/SEU-USUARIO/tom-de-base.git
-git push -u origin main
-```
-
-Troque `SEU-USUARIO` pelo seu usuário do GitHub — o que aparece na URL do seu perfil. Se o GitHub pedir senha, ele quer um **personal access token**, não a senha da conta: Settings → Developer settings → Tokens (classic) → Generate new token, escopo `repo`.
-
-**3. Ative o GitHub Pages.** No repositório: **Settings → Pages**. Em *Source*, escolha **Deploy from a branch**. Branch `main`, pasta `/ (root)`. Salve.
-
-**4. Aguarde um ou dois minutos.** O endereço aparece no topo da mesma página.
-
-**5. Atualize o link** da seção *Demonstração* deste README com o endereço real.
-
----
-
-## Testando
-
-### A regra que governa tudo
-
-A API de câmera do navegador só funciona em **contexto seguro**:
-
-| Origem | Câmera funciona |
-|---|---|
-| `file:///Users/voce/index.html` | não |
-| `http://localhost:8000` | sim |
-| `http://192.168.0.15:8000` | não |
-| `https://qualquer-dominio` | sim |
-
-Abrir o arquivo com duplo clique **não funciona** — a permissão nunca chega a ser pedida.
-
-### No computador
-
-```bash
-cd tom-de-base
 python3 -m http.server 8000
 ```
 
-Abra `http://localhost:8000`. Chrome dá o melhor resultado por causa do delegate de GPU do MediaPipe.
+Then open:
 
-### No celular
+```text
+http://localhost:8000
+```
 
-Depois de publicar no GitHub Pages, basta abrir a URL. Se quiser testar antes:
+Allow camera access when requested.
+
+## Automated tests
+
+Node.js is used only for repository tests; it is not a runtime dependency of the deployed page.
+
+Requirements:
+
+- Node.js 20+
+
+Run:
 
 ```bash
-brew install cloudflared
-cloudflared tunnel --url http://localhost:8000
+npm test
 ```
 
-Devolve uma URL `https://` pública. O computador precisa continuar ligado. No iOS não há alternativa: Safari exige HTTPS real.
+The current regression suite extracts the **actual deployed color-science block from `index.html`** and checks it directly. This avoids maintaining a second copy of the formulas while the application is still monolithic.
 
----
+Protected behavior currently includes:
 
-## Como usar
+- sRGB white/black reference endpoints;
+- sRGB red → CIELAB D65 reference value;
+- CIEDE2000 reference pairs and symmetry;
+- current ITA° bucket boundaries;
+- current prototype undertone thresholds.
 
-### Preparação, que vale mais que o software
+GitHub Actions runs these tests on pull requests to `main`.
 
-**Luz.** Perto de uma janela, luz de dia indireta. Sem lâmpada amarela, sem parede colorida a menos de um metro refletindo no rosto, sem janela às suas costas. Uma parede laranja próxima muda a medida inteira.
+## Current limitations
 
-**Rosto.** Sem maquiagem, cabelo preso liberando testa e mandíbula.
+### Camera ≠ colorimeter
 
-**Referência.** Uma folha de papel branco à mão.
+A phone or webcam is not a calibrated measurement instrument. Automatic white balance and exposure can shift Lab values even when the physical skin color has not changed.
 
-### Passo a passo
+### Lighting sensitivity
 
-1. Abra a página e permita o acesso à câmera.
-2. **Confira o espelho.** Segure algo escrito na frente da câmera. Como esta é uma visão de espelho, o texto deve aparecer **invertido**. Se estiver legível, alterne o botão no cartão *Câmera*. Isso não é cosmético — a orientação errada troca a bochecha direita pela esquerda nas instruções.
-3. **Calibre.** Segure a folha branca cobrindo o miolo do quadro e clique em **Calibrar com papel branco**. Sem isso os números são relativos: o balanço de branco automático da câmera desloca todas as leituras.
-4. Enquadre o rosto. Quatro círculos brancos marcam as regiões amostradas, e um quinto aparece no pescoço.
-5. Leia o painel: L\*, a\*, b\*, classificação por ITA°, subtom e tom sugerido.
+Warm light, mixed light, colored walls and backlight can alter the measurement. A controlled validation protocol is required before accuracy claims.
 
-**O teste que vale mais que o número** está no bloco do topo: pele medida e base alvo encostadas sem divisória. Se a aresta entre as duas metades some ao olhar, o tom bate. Se você enxerga a linha, não bate. Juxtaposição de aresta dura é o método mais confiável de julgamento de cor que existe, e aqui é mais confiável que o ΔE.
+### Synthetic catalog
 
-Para testar outro tom, clique em qualquer quadrado da escala. **Voltar para a sugestão automática** restaura a leitura.
+The demo shades are generated, not measured from commercial foundation products.
 
-### Acompanhando a aplicação
+### Face/neck sampling
 
-1. Ainda com o rosto limpo, clique em **Marcar pele nua**. Isso captura a linha de base.
-2. Ligue **Instruções por voz** — suas mãos vão estar ocupadas.
-3. Aplique a base normalmente.
+The neck point is geometrically estimated below the chin. Occlusion, pose, hair, hands and brushes can disrupt sampling.
 
-As barras enchem por região conforme a cor caminha da pele nua até o tom alvo. As instruções cobrem três situações:
+### Monolithic runtime
 
-- **Cobertura baixa.** Indica a região mais atrasada.
-- **Desigualdade.** Diferença acima de 32% entre a região mais coberta e a menos coberta.
-- **Descolamento do pescoço.** ΔE acima de 5,5 entre a média do rosto e o pescoço. É o erro mais comum na aplicação real e o que praticamente nenhuma ferramenta mede.
+Camera, vision, color science, calibration, application heuristics and UI currently live in one HTML module. The next engineering refactor is to extract pure color functions first, then isolate camera/vision state.
 
----
+### External runtime dependencies
 
-## Como funciona
+MediaPipe code/model files and fonts are fetched from third-party hosts. A production version should review CSP, asset self-hosting and supply-chain controls.
 
-### Medição
+## Validation before productization
 
-1. Quatro regiões faciais (testa, duas bochechas, queixo) mais uma extrapolada abaixo do queixo, no pescoço.
-2. Em cada mancha, **média aparada**: descarta os 25% de pixels mais claros e os 25% mais escuros. Remove brilho de oleosidade, fio de cabelo e sombra sem precisar de segmentação.
-3. Conversão sRGB → linear → XYZ D65 → CIELAB.
-4. **ITA°** = atan((L\*−50)/b\*) × 180/π, com a classificação usada em dermatologia e cosmética: muito clara acima de 55°, clara até 41°, intermediária até 28°, morena até 10°, castanha até −30°, escura abaixo disso.
-5. Subtom pelo ângulo de matiz em a\*b\*: frio abaixo de 47,5°, neutro até 57,5°, quente acima.
-6. Tom sugerido por menor **ΔE2000** contra o catálogo.
+The next important milestone is not adding more UI. It is measuring repeatability.
 
-Como referência de leitura do ΔE: abaixo de 2,5 a diferença é dificilmente perceptível, entre 2,5 e 5 é visível a olho treinado, acima de 5 é visível para qualquer pessoa.
+At minimum, test the same participants across:
 
-### Orientação da imagem
+- repeated captures in one session;
+- indirect daylight, neutral LED, warm light and mixed light;
+- calibration off/on;
+- Android Chrome, desktop Chrome and iPhone Safari;
+- a broad range of measured skin colors.
 
-Existe um único ponto onde o espelhamento é resolvido, e ele importa mais aqui do que pareceria.
+Track Lab dispersion, pairwise ΔE00, shade-ranking stability, landmark dropout and processing latency. See [VALIDATION.md](VALIDATION.md).
 
-O quadro cru é convertido uma vez para a **orientação real** — não espelhada. A medição consome esse quadro, porque os índices da malha do MediaPipe são anatômicos: o índice 50 é a bochecha direita da pessoa apenas se a imagem estiver na orientação verdadeira. Numa imagem espelhada o modelo continua encontrando um rosto válido e continua rotulando, só que trocado, e o guia passaria a mandar você esfumar o lado errado sem nenhum sinal de erro.
+## Repository map
 
-A **exibição** espelha esse quadro de volta, sempre, porque a pessoa se maquia olhando para a tela como quem olha para um espelho.
-
-O botão no cartão *Câmera* informa apenas se a fonte já chega espelhada. Webcam frontal costuma chegar; câmera traseira de celular, não. O app tenta deduzir pelo `facingMode` da faixa de vídeo e assume espelhado quando essa informação não vem, que é o caso comum em webcam de notebook.
-
-### O catálogo é genérico
-
-Os 36 tons embutidos são gerados por matiz e luminosidade, não medidos de produtos reais. Estão marcados como referência na própria interface. Para virar produto, substitua em `SHADES` pelos valores L\*a\*b\* dos produtos da marca, medidos com colorímetro ou espectrofotômetro. Essa é a única parte que não dá para gerar com honestidade.
-
-```js
-SHADES.push({ id:'N30', tone:'neutro', L:62, a:9.6, b:12.3, css:labToRgb(62,9.6,12.3) });
+```text
+.
+├── index.html                  current browser prototype
+├── tests/
+│   └── color-science.test.js   regression tests against deployed math
+├── .github/workflows/ci.yml    automated CI
+├── ARCHITECTURE.md             current + target architecture
+├── VALIDATION.md               empirical validation plan
+├── SECURITY.md                 privacy/security boundaries
+├── package.json                development/test commands only
+├── .nojekyll                   explicit GitHub Pages behavior
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
----
+## Technical roadmap
 
-## Problemas comuns
+1. extract pure color math into `src/color/` without changing numerical behavior;
+2. add calibration tests and invalidate baselines when capture calibration changes;
+3. separate camera orientation from display mirroring;
+4. add explicit GPU → CPU model-loading fallback and differentiated camera/model errors;
+5. retain the last valid face pose during short hand/brush occlusions;
+6. collect repeatability data across devices, lighting and skin-color ranges;
+7. replace the synthetic catalog with measured brand data;
+8. only then define product accuracy claims and candidate thresholds.
 
-**A câmera não abre.** Você abriu por `file://`. Sirva por `localhost` ou publique em HTTPS.
+## Reference
 
-**As instruções mandam esfumar o lado errado.** O espelho está invertido. Faça o teste do texto no cartão *Câmera*.
+CIEDE2000 regression data: G. Sharma, W. Wu and E. N. Dalal, *The CIEDE2000 Color-Difference Formula: Implementation Notes, Supplementary Test Data, and Mathematical Observations*, Color Research & Application 30(1), 2005.
 
-**As leituras pulam durante a aplicação.** Você mudou de posição em relação à luz. É limitação real de câmera, não bug. Fique parado em relação à janela.
+## License
 
-**O tom sugerido muda sozinho.** Mesma causa. Recalibre e refaça a leitura sem se mover.
-
-**O mesmo rosto dá tons diferentes em cômodos diferentes.** Esperado sem travar exposição. É a principal limitação do protótipo.
-
-**A voz não sai.** O navegador exige interação do usuário antes de liberar áudio. Clique em qualquer lugar da página e ligue de novo.
-
----
-
-## Limitações conhecidas
-
-**Balanço de branco.** A câmera ajusta cor automaticamente e desloca a medida inteira. Sem a calibração com papel branco, os valores são relativos e não comparáveis entre ambientes. Travar exposição e temperatura exige `applyConstraints` e só funciona de forma confiável no Chrome Android.
-
-**Iluminação.** Luz quente, parede colorida próxima ou contraluz invalidam a leitura. Janela com luz indireta é o cenário de referência.
-
-**Oclusão.** Mão e pincel cobrem o rosto durante a aplicação e o rastreio oscila. Não há retenção de última pose válida implementada.
-
-**Catálogo genérico.** Sem medição real dos produtos, a sugestão indica a faixa correta, não o SKU correto.
-
-**Aparelhos antigos.** Sem delegate de GPU o quadro cai bastante.
-
-## O teste que decide se isso vira produto
-
-Meça o mesmo rosto em três iluminações — janela, lâmpada quente, LED de teto — com e sem calibração, e anote os L\*. A dispersão entre elas é o número que define a tolerância que o produto precisa ter, e é a primeira pergunta que um cliente de cosmético vai fazer.
-
-Reduzir essa dispersão passa por travar exposição, ISO e temperatura de cor, ou, o caminho mais robusto e usado na indústria, por exigir um alvo de referência colorimétrico no quadro.
-
-## Próximos passos
-
-- Catálogo real medido com colorímetro
-- Retenção de pose sob oclusão de mão e pincel
-- Trava de exposição e temperatura via `applyConstraints`
-- Camada de linguagem gerando as instruções a partir das métricas, no lugar das frases fixas atuais
-- Ficha exportável com a leitura e o tom recomendado, para o cliente levar à loja
-
-## Licença
-
-MIT. Veja [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
