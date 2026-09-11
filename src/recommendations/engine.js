@@ -7,7 +7,7 @@ export function prioritizeRecommendations(...groups) {
     .sort((a, b) => (severityRank[b.severity] || 0) - (severityRank[a.severity] || 0));
 }
 
-export function buildExecutiveSummary({ score, media, leads, creativeGroups, recommendations }) {
+export function buildExecutiveSummary({ score, media, leads, creativeGroups, recommendations, budgetAtRisk = null }) {
   const criticalCount = recommendations.filter((r) => r.severity === 'critical').length;
   const warningCount = recommendations.filter((r) => r.severity === 'warning').length;
   const bestCreative = [...creativeGroups].sort((a, b) => b.roas - a.roas)[0];
@@ -19,6 +19,7 @@ export function buildExecutiveSummary({ score, media, leads, creativeGroups, rec
       score >= 60 ? 'Performance is mixed; there are material opportunities to improve economics.' :
       'Performance requires attention before additional scaling.',
     risk: { critical: criticalCount, warning: warningCount },
+    budgetAtRisk,
     economics: {
       spend: media.spend,
       cpl: media.cpl,
