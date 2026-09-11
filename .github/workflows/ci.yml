@@ -1,0 +1,18 @@
+name: AdSignal CI
+
+on:
+  push:
+    branches: [main, product/adsignal-unified-v1]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --ignore-scripts || npm install --ignore-scripts
+      - run: npm run ci
