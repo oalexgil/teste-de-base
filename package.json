@@ -1,12 +1,12 @@
 {
   "name": "adsignal-intelligence",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Unified paid-media intelligence for efficiency, lead quality and creative performance.",
+  "description": "Paid-media decision engine for efficiency, lead quality, creative performance and experiment learning.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/domain/media.js && node --check src/domain/leads.js && node --check src/domain/creative.js && node --check src/domain/scoring.js && node --check src/domain/analyze.js && node --check src/recommendations/engine.js && node --check src/importers/csv.js && node --check src/importers/normalize.js && node --check adsignal/app.js",
+    "check": "node --check src/domain/media.js && node --check src/domain/leads.js && node --check src/domain/creative.js && node --check src/domain/scoring.js && node --check src/domain/change.js && node --check src/domain/experiments.js && node --check src/domain/analyze.js && node --check src/recommendations/engine.js && node --check src/importers/csv.js && node --check src/importers/normalize.js && node --check adsignal/app.js",
     "ci": "npm run check && npm test"
   },
   "engines": {
