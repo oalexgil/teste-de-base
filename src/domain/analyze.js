@@ -1,6 +1,7 @@
 import { aggregateMedia, efficiencyScore, diagnoseMedia } from './media.js';
 import { aggregateLeads, leadQualityScore, diagnoseLeads } from './leads.js';
 import { joinCreativePerformance, creativeHealthScore, diagnoseCreative } from './creative.js';
+import { campaignEconomics } from './campaigns.js';
 import { compositeAdSignalScore } from './scoring.js';
 import { comparePeriods, evaluateTargets, estimateBudgetAtRisk, temporalFindings } from './change.js';
 import { evaluateExperiments, experimentFindings } from './experiments.js';
@@ -18,6 +19,7 @@ export function analyzeWorkspace({
   const media = aggregateMedia(mediaRecords);
   const leads = aggregateLeads(leadRecords, media.spend);
   const creativeGroups = joinCreativePerformance(mediaRecords, creativeRecords);
+  const campaigns = campaignEconomics(mediaRecords, leadRecords);
 
   const scores = {
     efficiency: efficiencyScore(media),
@@ -54,6 +56,7 @@ export function analyzeWorkspace({
     scores,
     media,
     leads,
+    campaigns,
     creativeGroups,
     change: {
       trends,
