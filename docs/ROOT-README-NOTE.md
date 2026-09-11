@@ -1,0 +1,1 @@
+The root README from the temporary repository still predates AdSignal. Use `README-ADSIGNAL.md` as the product overview until the repository is renamed or the root README is replaced during the migration step.
