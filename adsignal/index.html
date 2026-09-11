@@ -1,127 +1,210 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="AdSignal Intelligence is a paid-media decision engine that connects spend, lead quality, creative performance and experiment learning." />
+  <meta name="description" content="AdSignal Intelligence conecta mídia paga, qualidade de leads, CAC e inteligência criativa em um motor de decisão contínuo." />
   <title>AdSignal Intelligence — Performance Decision Engine</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./decision.css" />
 </head>
 <body>
   <header class="shell nav">
-    <a class="brand" href="#">AdSignal<span>Intelligence</span></a>
+    <a class="brand" href="#top">AdSignal<span>Intelligence</span></a>
     <div class="nav-actions">
-      <span class="status"><i></i> Demo workspace · current vs previous period</span>
-      <button id="loadDemo" class="button secondary">Reload demo</button>
+      <select id="workspaceSelect" class="select compact-select" aria-label="Workspaces salvos">
+        <option value="">Workspaces salvos</option>
+      </select>
+      <button id="saveWorkspace" class="button secondary">Salvar</button>
+      <button id="exportReport" class="button secondary" disabled>Relatório</button>
+      <button id="loadDemo" class="button">Carregar demo</button>
     </div>
   </header>
 
-  <main class="shell">
-    <section class="hero">
+  <main id="top" class="shell">
+    <section class="hero hero-product">
       <div>
         <p class="eyebrow">PAID MEDIA DECISION ENGINE</p>
-        <h1>Observe. Diagnose. <em>Decide.</em> Learn.</h1>
-        <p class="hero-copy">AdSignal connects media economics, CRM outcomes, creative concepts and historical decisions so teams know what changed, how much money is exposed and what to test next.</p>
+        <h1>Observe. Diagnose. <em>Decida.</em> Aprenda.</h1>
+        <p class="hero-copy">Cruze investimento, CRM e criativos para descobrir quais campanhas parecem baratas, mas geram clientes caros — e quais decisões realmente melhoram CAC, CPQL e qualidade.</p>
       </div>
-      <div class="score-hero">
-        <div class="score-ring" id="overallScore">—</div>
+      <div class="trust-card">
+        <strong>Local-first beta</strong>
+        <p>Os CSVs são processados no navegador. Nesta versão, nenhum dado é enviado para um servidor do AdSignal.</p>
+        <span>✓ Sem chave de API</span><span>✓ Sem upload para nuvem</span><span>✓ Workspace salvo localmente</span>
+      </div>
+    </section>
+
+    <section id="setupPanel" class="panel setup-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">1 · CONFIGURAÇÃO</p><h2>Crie uma análise com seus próprios dados</h2></div>
+        <span id="setupStatus" class="pill">Aguardando mídia</span>
+      </div>
+
+      <div class="setup-grid">
+        <div class="setup-main">
+          <label class="field-label" for="workspaceName">Nome do workspace</label>
+          <input id="workspaceName" class="input" value="Minha operação" />
+
+          <div class="source-grid">
+            <label class="source-card required-source" for="mediaFile">
+              <span class="source-step">Obrigatório</span>
+              <strong>Mídia paga</strong>
+              <small>Meta Ads, Google Ads ou outro export CSV com gasto, impressões e cliques.</small>
+              <input id="mediaFile" type="file" accept=".csv,text/csv" />
+              <b id="mediaFileStatus">Selecionar CSV</b>
+            </label>
+            <label class="source-card" for="leadFile">
+              <span class="source-step">Recomendado</span>
+              <strong>Leads / CRM</strong>
+              <small>Status, qualificação, reunião, venda e receita. É o que permite calcular CPQL e CAC reais.</small>
+              <input id="leadFile" type="file" accept=".csv,text/csv" />
+              <b id="leadFileStatus">Selecionar CSV</b>
+            </label>
+            <label class="source-card" for="creativeFile">
+              <span class="source-step">Opcional</span>
+              <strong>Metadados criativos</strong>
+              <small>ID do anúncio, hook, ângulo, formato, oferta e CTA para descobrir quais conceitos geram clientes melhores.</small>
+              <input id="creativeFile" type="file" accept=".csv,text/csv" />
+              <b id="creativeFileStatus">Selecionar CSV</b>
+            </label>
+          </div>
+
+          <div id="mappingPanel" class="mapping-panel hidden">
+            <div class="panel-heading compact"><div><p class="eyebrow">2 · MAPEAMENTO</p><h3>Confirme as colunas reconhecidas</h3></div><span id="mappingScore" class="pill">—</span></div>
+            <p class="helper">O AdSignal tenta reconhecer automaticamente exportações em português e inglês. Ajuste apenas o que estiver incorreto.</p>
+            <div id="mappingEditors"></div>
+          </div>
+        </div>
+
+        <aside class="setup-side">
+          <div class="side-block">
+            <p class="eyebrow">3 · METAS DO NEGÓCIO</p>
+            <div class="targets-grid">
+              <label>CPL máximo <input id="targetMaxCpl" class="input" type="number" min="0" step="0.01" placeholder="30" /></label>
+              <label>CPQL máximo <input id="targetMaxCpql" class="input" type="number" min="0" step="0.01" placeholder="90" /></label>
+              <label>CAC máximo <input id="targetMaxCac" class="input" type="number" min="0" step="0.01" placeholder="300" /></label>
+              <label>ROAS mínimo <input id="targetMinRoas" class="input" type="number" min="0" step="0.1" placeholder="3" /></label>
+              <label>Qualificação mínima % <input id="targetMinQualification" class="input" type="number" min="0" max="100" step="1" placeholder="30" /></label>
+              <label>Lead ruim máximo % <input id="targetMaxLowQuality" class="input" type="number" min="0" max="100" step="1" placeholder="25" /></label>
+            </div>
+          </div>
+
+          <div class="side-block">
+            <p class="eyebrow">4 · EXPERIMENTO</p>
+            <input id="experimentName" class="input" placeholder="Ex.: Novo hook de prova social" />
+            <div class="inline-fields">
+              <select id="experimentMetric" class="select">
+                <option value="cac">CAC</option><option value="cpql">CPQL</option><option value="cpl">CPL</option>
+                <option value="roas">ROAS</option><option value="qualificationRate">Qualificação</option><option value="lowQualityRate">Lead ruim</option>
+              </select>
+              <select id="experimentDirection" class="select">
+                <option value="down">Menor é melhor</option><option value="up">Maior é melhor</option>
+              </select>
+            </div>
+            <div class="inline-fields">
+              <input id="experimentLift" class="input" type="number" min="1" max="100" value="10" aria-label="Mudança mínima em porcentagem" />
+              <button id="addExperiment" class="button secondary" type="button">Adicionar teste</button>
+            </div>
+            <div id="experimentDrafts" class="draft-list"></div>
+          </div>
+
+          <button id="analyzeData" class="button primary full" type="button">Analisar operação →</button>
+          <p class="helper center">Se houver datas suficientes, o arquivo é dividido automaticamente em período anterior × atual.</p>
+        </aside>
+      </div>
+
+      <details class="connector-details">
+        <summary>Conectores diretos Meta / Google / CRM</summary>
+        <div class="connector-grid">
+          <div><strong>Meta Ads</strong><span>OAuth + ads_read</span><b>Requer App Review / acesso de produção</b></div>
+          <div><strong>Google Ads</strong><span>OAuth + projeto Google Cloud</span><b>Requer verificação e nível de acesso</b></div>
+          <div><strong>CRM</strong><span>HubSpot / Pipedrive</span><b>Conector de API posterior; CSV funciona agora</b></div>
+        </div>
+      </details>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <section class="hero dashboard-hero">
         <div>
-          <small>ADSIGNAL SCORE</small>
-          <strong id="headline">Loading analysis…</strong>
+          <p class="eyebrow">WORKSPACE · <span id="workspaceLabel">—</span></p>
+          <h1>O que mudou, <em>por quê</em> e o que fazer agora.</h1>
+          <p id="periodLabel" class="hero-copy small-copy">—</p>
         </div>
-      </div>
-    </section>
-
-    <section class="score-grid" aria-label="Core product scores">
-      <article class="score-card"><span>Media efficiency</span><strong id="efficiencyScore">—</strong><small>Cost + funnel economics</small></article>
-      <article class="score-card"><span>Lead quality</span><strong id="leadScore">—</strong><small>Qualified outcomes, not volume</small></article>
-      <article class="score-card"><span>Creative health</span><strong id="creativeScore">—</strong><small>Concept diversity + performance</small></article>
-    </section>
-
-    <section class="panel">
-      <div class="panel-heading">
-        <div><p class="eyebrow">ECONOMICS</p><h2>Acquisition reality</h2></div>
-        <span class="pill">Current period</span>
-      </div>
-      <div class="metric-grid">
-        <div class="metric"><span>Spend</span><strong id="spend">—</strong></div>
-        <div class="metric"><span>CPL</span><strong id="cpl">—</strong></div>
-        <div class="metric accent"><span>CPQL</span><strong id="cpql">—</strong><small>Cost per qualified lead</small></div>
-        <div class="metric"><span>CAC</span><strong id="cac">—</strong></div>
-        <div class="metric"><span>ROAS</span><strong id="roas">—</strong></div>
-        <div class="metric"><span>Lead → sale</span><strong id="closeRate">—</strong></div>
-      </div>
-    </section>
-
-    <section class="risk-panel panel">
-      <div class="risk-number">
-        <p class="eyebrow">DECISION RISK</p>
-        <span>Estimated 7-day budget at risk</span>
-        <strong id="budgetAtRisk">—</strong>
-        <small id="riskMethod">Directional estimate, not a revenue forecast.</small>
-      </div>
-      <div>
-        <div class="panel-heading compact"><div><p class="eyebrow">CHANGE RADAR</p><h2>What changed since the previous period?</h2></div></div>
-        <div id="trendGrid" class="trend-grid"></div>
-      </div>
-    </section>
-
-    <section class="two-col">
-      <article class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">PRIORITY QUEUE</p><h2>What to do next</h2></div><span id="riskCount" class="pill danger">—</span></div>
-        <div id="recommendations" class="recommendations"></div>
-      </article>
-
-      <article class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">LEAD QUALITY</p><h2>Volume vs. value</h2></div></div>
-        <div class="funnel">
-          <div><strong id="leadTotal">—</strong><span>Leads</span></div>
-          <b>→</b>
-          <div><strong id="qualifiedTotal">—</strong><span>Qualified</span></div>
-          <b>→</b>
-          <div><strong id="meetingTotal">—</strong><span>Meetings</span></div>
-          <b>→</b>
-          <div><strong id="salesTotal">—</strong><span>Sales</span></div>
+        <div class="score-hero">
+          <div class="score-ring" id="overallScore">—</div>
+          <div><small>ADSIGNAL SCORE</small><strong id="headline">—</strong></div>
         </div>
-        <div class="quality-note"><span>Low-quality / invalid share</span><strong id="lowQualityRate">—</strong></div>
-      </article>
-    </section>
+      </section>
 
-    <section class="panel">
-      <div class="panel-heading">
-        <div><p class="eyebrow">EXPERIMENT MEMORY</p><h2>Did our last decisions actually work?</h2></div>
-        <span class="pill">Winner · Loser · Learning</span>
-      </div>
-      <div id="experimentList" class="experiment-list"></div>
-    </section>
+      <section class="score-grid" aria-label="Scores centrais">
+        <article class="score-card"><span>Eficiência de mídia</span><strong id="efficiencyScore">—</strong><small>Custo + conversão</small></article>
+        <article class="score-card"><span>Qualidade de lead</span><strong id="leadScore">—</strong><small>Resultado real, não volume</small></article>
+        <article class="score-card"><span>Saúde criativa</span><strong id="creativeScore">—</strong><small>Conceito + downstream</small></article>
+      </section>
 
-    <section class="panel">
-      <div class="panel-heading">
-        <div><p class="eyebrow">CREATIVE INTELLIGENCE</p><h2>Concepts, not file count</h2></div>
-        <span class="pill">Hook × Angle × Format</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Concept</th><th>Spend</th><th>CTR</th><th>CPL</th><th>ROAS</th><th>Signal</th></tr></thead>
-          <tbody id="creativeTable"></tbody>
-        </table>
-      </div>
-    </section>
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">ECONOMIA DE AQUISIÇÃO</p><h2>Da verba ao cliente</h2></div><span class="pill">Período atual</span></div>
+        <div class="metric-grid">
+          <div class="metric"><span>Investimento</span><strong id="spend">—</strong></div>
+          <div class="metric"><span>CPL</span><strong id="cpl">—</strong></div>
+          <div class="metric accent"><span>CPQL</span><strong id="cpql">—</strong><small>Custo por lead qualificado</small></div>
+          <div class="metric"><span>CAC</span><strong id="cac">—</strong></div>
+          <div class="metric"><span>ROAS</span><strong id="roas">—</strong></div>
+          <div class="metric"><span>Lead → venda</span><strong id="closeRate">—</strong></div>
+        </div>
+      </section>
 
-    <section class="panel import-panel">
-      <div>
-        <p class="eyebrow">CSV-FIRST VALIDATION</p>
-        <h2>Prove the decision value before expensive integrations.</h2>
-        <p>The beta can compare recurring exports and preserve targets and experiment history. Direct Meta, Google and CRM connections come after recurring use is validated.</p>
-      </div>
-      <div class="import-list">
-        <span>Ad platforms</span><span>CRM outcomes</span><span>Creative metadata</span><span>Business targets</span><span>Previous period</span>
-      </div>
+      <section class="risk-panel panel">
+        <div class="risk-number">
+          <p class="eyebrow">DECISION RISK</p><span>Verba estimada em risco · 7 dias</span><strong id="budgetAtRisk">—</strong><small id="riskMethod">Estimativa direcional; não é previsão de receita.</small>
+        </div>
+        <div>
+          <div class="panel-heading compact"><div><p class="eyebrow">CHANGE RADAR</p><h2>O que mudou?</h2></div></div>
+          <div id="trendGrid" class="trend-grid"></div>
+        </div>
+      </section>
+
+      <section class="two-col">
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">PRIORIDADES</p><h2>O que fazer agora</h2></div><span id="riskCount" class="pill danger">—</span></div>
+          <div id="recommendations" class="recommendations"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">QUALIDADE</p><h2>Volume × valor</h2></div></div>
+          <div class="funnel">
+            <div><strong id="leadTotal">—</strong><span>Leads</span></div><b>→</b>
+            <div><strong id="qualifiedTotal">—</strong><span>Qualificados</span></div><b>→</b>
+            <div><strong id="meetingTotal">—</strong><span>Reuniões</span></div><b>→</b>
+            <div><strong id="salesTotal">—</strong><span>Vendas</span></div>
+          </div>
+          <div class="quality-note"><span>Leads inválidos / sem resposta</span><strong id="lowQualityRate">—</strong></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">CAMPANHAS</p><h2>CPL barato não basta</h2></div><span class="pill">CPL × CPQL × CAC</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Campanha</th><th>Spend</th><th>CPL</th><th>CPQL</th><th>CAC</th><th>Qualif.</th><th>Vendas</th><th>ROAS</th></tr></thead><tbody id="campaignTable"></tbody></table></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">EXPERIMENT MEMORY</p><h2>As decisões funcionaram?</h2></div><span class="pill">Winner · Loser · Learning</span></div>
+        <div id="experimentList" class="experiment-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">CREATIVE INTELLIGENCE</p><h2>Quais mensagens trazem os melhores clientes?</h2></div><span class="pill">Hook × Ângulo × Formato</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Conceito</th><th>Spend</th><th>CPL</th><th>CPQL</th><th>Qualif.</th><th>CAC</th><th>ROAS</th><th>Sinal</th></tr></thead><tbody id="creativeTable"></tbody></table></div>
+      </section>
+
+      <section class="panel action-footer">
+        <div><p class="eyebrow">PRÓXIMA DECISÃO</p><h2 id="nextAction">—</h2><p class="helper">Salve o workspace para comparar esta análise com novas importações e mantenha os testes registrados.</p></div>
+        <div class="footer-actions"><button id="saveWorkspaceBottom" class="button secondary">Salvar workspace</button><button id="exportReportBottom" class="button primary">Abrir relatório executivo</button></div>
+      </section>
     </section>
   </main>
 
-  <footer class="shell footer">AdSignal Intelligence · Explainable performance decisions, measured over time</footer>
+  <footer class="shell footer">AdSignal Intelligence · Dados locais nesta beta · Decisões explicáveis, medidas ao longo do tempo</footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
