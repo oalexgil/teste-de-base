@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="AdSignal Intelligence connects paid-media efficiency, lead quality and creative performance into one actionable diagnostic." />
+  <title>AdSignal Intelligence — Performance Decision Layer</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="shell nav">
+    <a class="brand" href="#">AdSignal<span>Intelligence</span></a>
+    <div class="nav-actions">
+      <span class="status"><i></i> Demo workspace</span>
+      <button id="loadDemo" class="button secondary">Reload demo</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">PAID MEDIA DECISION LAYER</p>
+        <h1>Know what changed, <em>why</em>, and what to do next.</h1>
+        <p class="hero-copy">One diagnosis for media efficiency, lead quality and creative performance. Built to move teams beyond CPL and vanity dashboards.</p>
+      </div>
+      <div class="score-hero">
+        <div class="score-ring" id="overallScore">—</div>
+        <div>
+          <small>ADSIGNAL SCORE</small>
+          <strong id="headline">Loading analysis…</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="score-grid" aria-label="Core product scores">
+      <article class="score-card"><span>Media efficiency</span><strong id="efficiencyScore">—</strong><small>Cost + funnel economics</small></article>
+      <article class="score-card"><span>Lead quality</span><strong id="leadScore">—</strong><small>Qualified outcomes, not volume</small></article>
+      <article class="score-card"><span>Creative health</span><strong id="creativeScore">—</strong><small>Concept diversity + performance</small></article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">ECONOMICS</p><h2>Acquisition reality</h2></div>
+        <span class="pill">Demo data</span>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><span>Spend</span><strong id="spend">—</strong></div>
+        <div class="metric"><span>CPL</span><strong id="cpl">—</strong></div>
+        <div class="metric accent"><span>CPQL</span><strong id="cpql">—</strong><small>Cost per qualified lead</small></div>
+        <div class="metric"><span>CAC</span><strong id="cac">—</strong></div>
+        <div class="metric"><span>ROAS</span><strong id="roas">—</strong></div>
+        <div class="metric"><span>Lead → sale</span><strong id="closeRate">—</strong></div>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <article class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">PRIORITY QUEUE</p><h2>What to do next</h2></div><span id="riskCount" class="pill danger">—</span></div>
+        <div id="recommendations" class="recommendations"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">LEAD QUALITY</p><h2>Volume vs. value</h2></div></div>
+        <div class="funnel">
+          <div><strong id="leadTotal">—</strong><span>Leads</span></div>
+          <b>→</b>
+          <div><strong id="qualifiedTotal">—</strong><span>Qualified</span></div>
+          <b>→</b>
+          <div><strong id="meetingTotal">—</strong><span>Meetings</span></div>
+          <b>→</b>
+          <div><strong id="salesTotal">—</strong><span>Sales</span></div>
+        </div>
+        <div class="quality-note"><span>Low-quality / invalid share</span><strong id="lowQualityRate">—</strong></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">CREATIVE INTELLIGENCE</p><h2>Concepts, not file count</h2></div>
+        <span class="pill">Hook × Angle × Format</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Concept</th><th>Spend</th><th>CTR</th><th>CPL</th><th>ROAS</th><th>Signal</th></tr></thead>
+          <tbody id="creativeTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel import-panel">
+      <div>
+        <p class="eyebrow">CSV-FIRST MVP</p>
+        <h2>Validate before expensive integrations.</h2>
+        <p>Commercial beta starts with structured exports from ad platforms and CRMs. API connectors come after users prove they value the diagnosis.</p>
+      </div>
+      <div class="import-list">
+        <span>Meta / Google Ads</span><span>CRM leads</span><span>Creative metadata</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer">AdSignal Intelligence · Explainable performance intelligence</footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
