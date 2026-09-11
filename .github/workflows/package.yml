@@ -1,0 +1,29 @@
+name: Package AdSignal Beta
+
+on:
+  push:
+    branches: [product/adsignal-unified-v1]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build release directory
+        run: |
+          mkdir -p release/adsignal-intelligence
+          cp -R adsignal release/adsignal-intelligence/
+          cp -R src release/adsignal-intelligence/
+          cp package.json release/adsignal-intelligence/
+          cp README-ADSIGNAL.md release/adsignal-intelligence/README.md
+          cp LICENSE release/adsignal-intelligence/
+          mkdir -p release/adsignal-intelligence/docs
+          cp docs/RELEASE-V0.3.md docs/INTEGRATIONS.md docs/DATA-CONTRACT.md docs/PRICING.md docs/GO-TO-MARKET.md release/adsignal-intelligence/docs/
+      - name: Create ZIP
+        run: cd release && zip -r adsignal-intelligence-v0.3.zip adsignal-intelligence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adsignal-intelligence-v0.3
+          path: release/adsignal-intelligence-v0.3.zip
+          if-no-files-found: error
