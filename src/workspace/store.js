@@ -8,7 +8,8 @@ function storageOrThrow(storage) {
 
 export function saveWorkspace(workspace, storage = globalThis.localStorage) {
   const target = storageOrThrow(storage);
-  const id = String(workspace.id || crypto?.randomUUID?.() || `ws-${Date.now()}`);
+  const generatedId = globalThis.crypto?.randomUUID?.() || `ws-${Date.now()}`;
+  const id = String(workspace.id || generatedId);
   const saved = { ...workspace, id, updatedAt: new Date().toISOString() };
   target.setItem(`${PREFIX}${id}`, JSON.stringify(saved));
 
