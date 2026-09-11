@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="AdSignal Intelligence connects paid-media efficiency, lead quality and creative performance into one actionable diagnostic." />
-  <title>AdSignal Intelligence — Performance Decision Layer</title>
+  <meta name="description" content="AdSignal Intelligence is a paid-media decision engine that connects spend, lead quality, creative performance and experiment learning." />
+  <title>AdSignal Intelligence — Performance Decision Engine</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="shell nav">
     <a class="brand" href="#">AdSignal<span>Intelligence</span></a>
     <div class="nav-actions">
-      <span class="status"><i></i> Demo workspace</span>
+      <span class="status"><i></i> Demo workspace · current vs previous period</span>
       <button id="loadDemo" class="button secondary">Reload demo</button>
     </div>
   </header>
@@ -19,9 +19,9 @@
   <main class="shell">
     <section class="hero">
       <div>
-        <p class="eyebrow">PAID MEDIA DECISION LAYER</p>
-        <h1>Know what changed, <em>why</em>, and what to do next.</h1>
-        <p class="hero-copy">One diagnosis for media efficiency, lead quality and creative performance. Built to move teams beyond CPL and vanity dashboards.</p>
+        <p class="eyebrow">PAID MEDIA DECISION ENGINE</p>
+        <h1>Observe. Diagnose. <em>Decide.</em> Learn.</h1>
+        <p class="hero-copy">AdSignal connects media economics, CRM outcomes, creative concepts and historical decisions so teams know what changed, how much money is exposed and what to test next.</p>
       </div>
       <div class="score-hero">
         <div class="score-ring" id="overallScore">—</div>
@@ -41,7 +41,7 @@
     <section class="panel">
       <div class="panel-heading">
         <div><p class="eyebrow">ECONOMICS</p><h2>Acquisition reality</h2></div>
-        <span class="pill">Demo data</span>
+        <span class="pill">Current period</span>
       </div>
       <div class="metric-grid">
         <div class="metric"><span>Spend</span><strong id="spend">—</strong></div>
@@ -50,6 +50,19 @@
         <div class="metric"><span>CAC</span><strong id="cac">—</strong></div>
         <div class="metric"><span>ROAS</span><strong id="roas">—</strong></div>
         <div class="metric"><span>Lead → sale</span><strong id="closeRate">—</strong></div>
+      </div>
+    </section>
+
+    <section class="risk-panel panel">
+      <div class="risk-number">
+        <p class="eyebrow">DECISION RISK</p>
+        <span>Estimated 7-day budget at risk</span>
+        <strong id="budgetAtRisk">—</strong>
+        <small id="riskMethod">Directional estimate, not a revenue forecast.</small>
+      </div>
+      <div>
+        <div class="panel-heading compact"><div><p class="eyebrow">CHANGE RADAR</p><h2>What changed since the previous period?</h2></div></div>
+        <div id="trendGrid" class="trend-grid"></div>
       </div>
     </section>
 
@@ -76,6 +89,14 @@
 
     <section class="panel">
       <div class="panel-heading">
+        <div><p class="eyebrow">EXPERIMENT MEMORY</p><h2>Did our last decisions actually work?</h2></div>
+        <span class="pill">Winner · Loser · Learning</span>
+      </div>
+      <div id="experimentList" class="experiment-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
         <div><p class="eyebrow">CREATIVE INTELLIGENCE</p><h2>Concepts, not file count</h2></div>
         <span class="pill">Hook × Angle × Format</span>
       </div>
@@ -89,17 +110,17 @@
 
     <section class="panel import-panel">
       <div>
-        <p class="eyebrow">CSV-FIRST MVP</p>
-        <h2>Validate before expensive integrations.</h2>
-        <p>Commercial beta starts with structured exports from ad platforms and CRMs. API connectors come after users prove they value the diagnosis.</p>
+        <p class="eyebrow">CSV-FIRST VALIDATION</p>
+        <h2>Prove the decision value before expensive integrations.</h2>
+        <p>The beta can compare recurring exports and preserve targets and experiment history. Direct Meta, Google and CRM connections come after recurring use is validated.</p>
       </div>
       <div class="import-list">
-        <span>Meta / Google Ads</span><span>CRM leads</span><span>Creative metadata</span>
+        <span>Ad platforms</span><span>CRM outcomes</span><span>Creative metadata</span><span>Business targets</span><span>Previous period</span>
       </div>
     </section>
   </main>
 
-  <footer class="shell footer">AdSignal Intelligence · Explainable performance intelligence</footer>
+  <footer class="shell footer">AdSignal Intelligence · Explainable performance decisions, measured over time</footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
