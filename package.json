@@ -1,12 +1,12 @@
 {
   "name": "adsignal-intelligence",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Paid-media decision engine for efficiency, lead quality, creative performance and experiment learning.",
+  "description": "Paid-media decision engine for efficiency, lead quality, creative performance, recurring comparison and experiment learning.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/domain/media.js && node --check src/domain/leads.js && node --check src/domain/creative.js && node --check src/domain/scoring.js && node --check src/domain/change.js && node --check src/domain/experiments.js && node --check src/domain/analyze.js && node --check src/recommendations/engine.js && node --check src/importers/csv.js && node --check src/importers/normalize.js && node --check adsignal/app.js",
+    "check": "node --check src/domain/media.js && node --check src/domain/leads.js && node --check src/domain/creative.js && node --check src/domain/campaigns.js && node --check src/domain/scoring.js && node --check src/domain/change.js && node --check src/domain/periods.js && node --check src/domain/experiments.js && node --check src/domain/analyze.js && node --check src/recommendations/engine.js && node --check src/importers/csv.js && node --check src/importers/mapping.js && node --check src/importers/normalize.js && node --check src/workspace/store.js && node --check src/report/export.js && node --check adsignal/app.js",
     "ci": "npm run check && npm test"
   },
   "engines": {
