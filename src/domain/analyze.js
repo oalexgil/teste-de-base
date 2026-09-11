@@ -18,7 +18,7 @@ export function analyzeWorkspace({
 }) {
   const media = aggregateMedia(mediaRecords);
   const leads = aggregateLeads(leadRecords, media.spend);
-  const creativeGroups = joinCreativePerformance(mediaRecords, creativeRecords);
+  const creativeGroups = joinCreativePerformance(mediaRecords, creativeRecords, leadRecords);
   const campaigns = campaignEconomics(mediaRecords, leadRecords);
 
   const scores = {
